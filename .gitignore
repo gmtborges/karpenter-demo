@@ -16,3 +16,6 @@ override.tf.json
 *tfplan*
 .terraformrc
 terraform.rc
+
+# Azure
+karpenter-values.yaml
