@@ -15,11 +15,13 @@ locals {
 }
 
 resource "aws_subnet" "public_subnet" {
-  vpc_id                  = data.terraform_remote_state.vpc.outputs.vpc_id
-  count                   = length(data.aws_availability_zones.available.names)
-  cidr_block              = cidrsubnet(data.terraform_remote_state.vpc.outputs.vpc_cidr_block, 4, count.index)
-  availability_zone       = element(data.aws_availability_zones.available.names, count.index)
-  map_public_ip_on_launch = true
+  vpc_id                          = data.terraform_remote_state.vpc.outputs.vpc_id
+  count                           = length(data.aws_availability_zones.available.names)
+  cidr_block                      = cidrsubnet(data.terraform_remote_state.vpc.outputs.vpc_cidr_block, 4, count.index)
+  availability_zone               = element(data.aws_availability_zones.available.names, count.index)
+  map_public_ip_on_launch         = true
+  assign_ipv6_address_on_creation = true
+  ipv6_cidr_block                 = cidrsubnet(data.terraform_remote_state.vpc.outputs.ipv6_cidr_block, 8, count.index)
 
   tags = {
     "Name"                   = format("%s-public-subnet-%s", local.vpc_name, element(data.aws_availability_zones.available.names, count.index))
@@ -42,6 +44,11 @@ resource "aws_route_table" "public_route_table" {
   route {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.my_igw.id
+  }
+
+  route {
+    ipv6_cidr_block = "::/0"
+    gateway_id      = aws_internet_gateway.my_igw.id
   }
 
   tags = {
