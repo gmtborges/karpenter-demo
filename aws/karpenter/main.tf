@@ -387,3 +387,19 @@ resource "aws_eks_pod_identity_association" "pod_identity_association" {
   service_account = "karpenter"
   role_arn        = aws_iam_role.karpenter_controller_role.arn
 }
+
+resource "helm_release" "karpenter" {
+  chart      = "karpenter"
+  name       = "karpenter"
+  repository = "oci://public.ecr.aws/karpenter"
+  version    = "1.0.6"
+  namespace  = "kube-system"
+  values = [
+    templatefile("values.yaml.tftpl",
+      {
+        eks_name : data.terraform_remote_state.eks.outputs.eks_name,
+        eks_endpoint : data.terraform_remote_state.eks.outputs.eks_endpoint
+      }
+    )
+  ]
+}
